@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FreelancePlatform.Persistence;
+namespace FreelancePlatform.Domain.Entities;
 
 public partial class UserRole
 {

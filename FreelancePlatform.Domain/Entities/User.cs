@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FreelancePlatform.Persistence;
+namespace FreelancePlatform.Domain.Entities;
 
 public partial class User
 {
@@ -10,6 +10,10 @@ public partial class User
     public string Username { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
+
+    public string? Password { get; set; }
+
+    public string? Email { get; set; }
 
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 

@@ -3,6 +3,8 @@ using FreelancePlatform.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace FreelancePlatform.Application.Auth;
+
+using FreelancePlatform.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

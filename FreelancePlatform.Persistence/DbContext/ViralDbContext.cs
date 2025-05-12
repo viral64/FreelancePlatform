@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Identity;
+using FreelancePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Task = FreelancePlatform.Domain.Entities.Task;
 
 namespace FreelancePlatform.Persistence;
 
-public partial class ViralDbContext : Microsoft.EntityFrameworkCore.DbContext
+public partial class ViralDbContext : DbContext
 {
-    //: Microsoft.EntityFrameworkCore.DbContext
-    // : IdentityDbContext<IdentityUser>
     public ViralDbContext()
     {
     }
@@ -183,6 +181,8 @@ public partial class ViralDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.Password).HasMaxLength(50);
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
                 .IsUnicode(false);
