@@ -1,4 +1,5 @@
 using FreelancePlatform.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,13 +16,22 @@ namespace API.Controllers
         {
             _dbContext = dbContext;
         }
-        // GET
-        [HttpGet("/index")]
+      
+        [Authorize]
+        [HttpGet("index")]
         public IActionResult Index()
         {
-           var list= _dbContext.Users.ToList();
-           return Ok(list);
+            var list = _dbContext.Users.ToList();
+            return Ok(list);
         }
-        
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("temp")]
+        public IActionResult Temp()
+        {
+            var list = _dbContext.Users.ToList();
+            return Ok(list);
+        }
+
     }
 }

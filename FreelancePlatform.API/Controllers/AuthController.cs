@@ -16,11 +16,11 @@ namespace FreelancePlatform.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(string email,string password)
+        public async Task<IActionResult> Register(RegisterDto register)
         {
             try
             {
-                var token = await _authService.RegisterAsync(email,  password);
+                var token = await _authService.RegisterAsync(register);
                 return Ok(new { Token = token });
             }
             catch (Exception ex)
@@ -30,11 +30,11 @@ namespace FreelancePlatform.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(string email,string password)
+        public async Task<IActionResult> Login(LoginDto login)
         {
             try
             {
-                var token = await _authService.LoginAsync(email, password);
+                var token = await _authService.LoginAsync(login);
                 return Ok(new { Token = token });
             }
             catch (Exception ex)

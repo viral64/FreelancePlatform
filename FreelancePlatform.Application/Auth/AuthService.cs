@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FreelancePlatform.Application.Auth;
 
+using FreelancePlatform.Application.Helpers;
 using FreelancePlatform.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -25,52 +26,65 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public async Task<string> RegisterAsync(string useremail, string password)
+    public async Task<string> RegisterAsync(RegisterDto registerDto)
     {
         try
         {
-            // Check if the email already exists
-            var userExists = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == useremail);
+            var userExists = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == registerDto.Email);
             if (userExists != null)
             {
                 throw new Exception("Email already exists.");
             }
 
-            // Hash the password
-            
+            var hashedPassword = PasswordHasher.HashPassword(registerDto.Password);
 
             // Create new user
             var user = new User
             {
-                Username = useremail
+                Username=registerDto.userName,
+                Email = registerDto.Email,
+                Password = hashedPassword
             };
 
             _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(); // Get UserId
+
+            // Add UserTypeMapping (1 = Client, 2 = Freelancer)
+            var userTypeMapping = new UserTypeMapping
+            {
+                UserId = user.Id,
+                UserTypeId = registerDto.IsClient ? 1 : 2,
+                AssignedAt = DateTime.UtcNow
+            };
+            _dbContext.UserTypeMappings.Add(userTypeMapping);
+
+            // Add UserRole (e.g., RoleId = 1 for normal users)
+            var userRole = new UserRole
+            {
+                UserId = user.Id,
+                RoleId = 2,
+                AssignedAt = DateTime.UtcNow
+            };
+            _dbContext.UserRoles.Add(userRole);
+
             await _dbContext.SaveChangesAsync();
 
-            // Generate JWT token
             return GenerateJwtToken(user);
         }
         catch (Exception ex)
         {
-            // Log the error if needed
             throw new Exception($"Registration failed: {ex.Message}");
         }
     }
 
-    public async Task<string> LoginAsync(string email, string password)
+
+    public async Task<string> LoginAsync(LoginDto login)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == email);
-        if (user == null)
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
+        if (user == null || !PasswordHasher.VerifyPassword(login.Password, user.Password))
         {
             throw new Exception("Invalid email or password.");
         }
-
-        // If passwords are stored as plain text (not recommended), compare directly
-        // if (user.Password != password)
-        // {
-        //     throw new Exception("Invalid email or password.");
-        // }
 
         return GenerateJwtToken(user);
     }
@@ -78,12 +92,18 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(User user)
     {
-        var claims = new[]
+        var userRole = _dbContext.UserRoles
+       .Include(ur => ur.Role)
+       .FirstOrDefault(ur => ur.UserId == user.Id);
+        var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Username)
+    };
+        if (userRole != null)
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Username),
-            // Add more claims if needed
-        };
+            claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name)); // Adds "Admin" or "User"
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -102,8 +122,10 @@ public class AuthService : IAuthService
 }
 public class RegisterDto
 {
+    public string userName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
+    public bool IsClient { get; set; }
 }
 public class LoginDto
 {
