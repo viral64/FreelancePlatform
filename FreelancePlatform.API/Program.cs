@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using FreelancePlatform.Application.Auth;
+using FreelancePlatform.Application.Tasks; // Added for ITaskService and TaskService
 
 using System.Text;
 
@@ -33,6 +34,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITaskService, TaskService>(); // Registered TaskService
 
 
 // Add services to the container.
